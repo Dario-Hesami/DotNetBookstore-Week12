@@ -1,5 +1,6 @@
 ﻿using DotNetBookstore.Data;
 using DotNetBookstore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,14 @@ namespace DotNetBookstore.Controllers
         // class level DbContext connection object
         private readonly ApplicationDbContext _context;
 
-        // constructor that accept a DbContext instance
-        public ShopController (ApplicationDbContext context)
+        // class level config object to read Stripe SecretKey from appsetttings.json
+        private readonly IConfiguration _configuration;
+
+        // constructor that accept both DbContext and Configuration instances
+        public ShopController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
         public IActionResult Index()
         {
@@ -140,6 +145,45 @@ namespace DotNetBookstore.Controllers
 
             // refresh and display cart
             return RedirectToAction("Cart");
+        }
+
+        // GET: /Shop/Ceckout | display an empty checkout form to get customer info
+        [Authorize]
+        public IActionResult Checkout()
+        {
+            return View();
+        }
+
+        // POST: /Shop/Checkout
+        // capture form data (order containing customer info) and save customer info in a session var
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public IActionResult Checkout([Bind("FirstName,LastName,Address,City,Province,PostalCode,Phone")] Order order)
+        {
+            // fill the CustomerId and OrderDate
+            order.OrderDate = DateTime.Now;
+            order.CustomerId = User.Identity.Name;
+
+            // calculate the OrderTotal and set this property
+            var cartItems = _context.CartItems.Where(c => c.CustomerId == GetCustomerId());
+            order.OrderTotal = (from c in cartItems
+                                select (c.Quantity * c.Price)).Sum();
+
+            // save oredr object to session var - after successful payment, retrieve the oreder object from the session var and save it to db
+            HttpContext.Session.SetObject("Order", order);
+
+
+            // redirect to stripe payment
+            return RedirectToAction("Payment");
+        }
+
+        // GET: /Shop/Payment
+        // invoke Stripe payment page & response
+        [Authorize]
+        public IActionResult Payment()
+        {
+            return View();
         }
     }
 }
