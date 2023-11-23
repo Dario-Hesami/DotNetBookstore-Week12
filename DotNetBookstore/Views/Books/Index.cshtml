@@ -1,0 +1,74 @@
+﻿@model IEnumerable<DotNetBookstore.Models.Book>
+
+@{
+    ViewData["Title"] = "Books";
+}
+
+<h1>Books</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table sortable table-striped table-hover">
+    <thead>
+        <tr>
+            <th>
+                <a href="#">@Html.DisplayNameFor(model => model.Author) </a>
+            </th>
+            <th>
+                <a href="#">@Html.DisplayNameFor(model => model.Title)</a>
+            </th>
+            <th>
+                @* @Html.DisplayNameFor(model => model.Image) *@
+            </th>
+            <th>
+                <a href="#">@Html.DisplayNameFor(model => model.Price)</a>
+            </th>
+            <th>
+                <a href="#">@Html.DisplayNameFor(model => model.MatureContent)</a>
+            </th>
+            <th>
+                <a href="#">@Html.DisplayNameFor(model => model.Category)</a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Author)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                    @if (item.Image != null)
+                    {
+                        <img src="~/img/books/@item.Image" alt="Book Cover" class="img-fluid img-thumbnail" style="max-width:60%" />
+                    }
+                    else
+                    {
+                        <img src="~/img/books/bookcover-placeholder.jpg" alt="Book Cover" class="img-fluid img-thumbnail" style="max-width:50%;" />
+                    }
+
+                @* @Html.DisplayFor(modelItem => item.Image) *@
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MatureContent)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category.Name)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.BookId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.BookId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.BookId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

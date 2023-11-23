@@ -1,0 +1,53 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    font-family: 'Rubik', sans-serif;
+    color: #212121;
+}
+
+a {
+    color: #03A9F4;
+}
+
+.btn-primary {
+    background-color: #03A9F4;
+}
+
+th > a {
+    text-decoration: none;
+}
+
+.card-body > a {
+    text-decoration: none;
+}
+
+
+.navbar-dark {
+    background-color: #3F51B5;
+}
+
+.table-striped tbody tr:nth-of-type(2n+1) {
+    background-color: #C5CAE9;
+}
+
+.footer {
+    background-color: #C5CAE9;
+}
+
+.cart-images {
+    height:9em;
+}

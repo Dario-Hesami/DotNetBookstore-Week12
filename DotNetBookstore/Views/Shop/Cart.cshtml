@@ -1,0 +1,61 @@
+﻿@model IEnumerable<DotNetBookstore.Models.CartItem>
+
+    @{
+    ViewData["Title"] = "Cart";
+    }
+
+    <h1>Cart</h1>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Book)
+                </th>
+                <th></th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Price)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Quantity)
+                </th>
+
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+            <tr>
+                <td>
+                    <a asp-controller="Books" asp-action="Details" asp-route-id="@item.BookId">
+                        @Html.DisplayFor(modelItem => item.Book.Title)
+                    </a>
+                </td>
+                <td>
+                    @if(item.Book.Image != null)
+                {
+                    <img src="~/img/books/@item.Book.Image" alt="Book Cover" class="img-fluid img-thumbnail cart-images">
+                }
+                else
+                {
+                    <img src="~/img/books/bookcover-placeholder.jpg" alt="Book Cover" class="img-fluid img-thumbnail cart-images">
+                }
+                </td>
+                <td>
+                    @String.Format("{0:c}", item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Quantity)
+                </td>
+
+                @*             <td>
+                        @Html.DisplayFor(modelItem => item.CustomerId)
+                    </td> *@
+
+                <td>
+                    <a asp-action="RemoveFromCart" asp-route-id="@item.CartItemId" onclick="return confirmDelete();">Remove</a>
+                </td>
+            </tr>
+}
+        </tbody>
+    </table>
