@@ -190,8 +190,8 @@ namespace DotNetBookstore.Controllers
             var order = HttpContext.Session.GetObject<Order>("Order");
 
             // read Stripe SecretKey from app configuration (appsettings.json) using _configuration class var
-            //StripeConfiguration.ApiKey = _configuration.GetValue<string>("StripeSecretKey");
-            StripeConfiguration.ApiKey = "sk_test_51OFKOwHXWyWx1WwQXKhXUBJVrJ8BSYNo1AaHQ4q5855GHCJRFKSCbbyqPZlOqEtvCrEJliEaWYKLMRK87TzXVxvc00KqVZQu6Z";
+            StripeConfiguration.ApiKey = _configuration.GetValue<string>("StripeSecretKey");
+            //StripeConfiguration.ApiKey = "sk_test_51OFKOwHXWyWx1WwQXKhXUBJVrJ8BSYNo1AaHQ4q5855GHCJRFKSCbbyqPZlOqEtvCrEJliEaWYKLMRK87TzXVxvc00KqVZQu6Z";
 
             // source: https://stripe.com/docs/checkout/quickstart and modified
 
@@ -207,7 +207,7 @@ namespace DotNetBookstore.Controllers
                   {
                       PriceData = new SessionLineItemPriceDataOptions
                       {
-                          UnitAmount = (long?)(order.OrderTotal * 100), // must be in cents
+                          UnitAmount = (long?)(order.OrderTotal * 100), // amount in smalles currency unit (e.g., cents)
                           Currency = "cad",
                           ProductData = new SessionLineItemPriceDataProductDataOptions
                           {
@@ -228,6 +228,53 @@ namespace DotNetBookstore.Controllers
 
             Response.Headers.Add("Location", session.Url);
             return new StatusCodeResult(303);
+        }
+
+        // GET: /Shop/SaveOrder
+        // once the payment is made, save the order and then show the confirmation
+        [Authorize]
+        public IActionResult SaveOrder()
+        {
+            // the user's order already has been saved in a session variable (an object)
+            // get the order from session var
+            var order = HttpContext.Session.GetObject<Order>("Order");
+
+            // set Payment ID - (hard coded)
+            // retrieved from Stripe or generated uniquely
+            order.PaymentCode = "pi_3OFf6AHXWyWx1WwQ13KeAgaZ";
+
+            // save the order to db
+            _context.Orders.Add(order);
+            _context.SaveChanges();
+
+            // save the user's cart items to db-OrderDetail 
+            var cartItems = _context.CartItems.Where(c => c.CustomerId == GetCustomerId());
+            foreach (var item in cartItems)
+            {
+                var orderDetail = new OrderDetail
+                {
+                    BookId = item.BookId,
+                    Quantity = item.Quantity,
+                    Price = item.Price,
+                    OrderId = order.OrderId
+                };
+
+                _context.OrderDetails.Add(orderDetail);
+            }
+            _context.SaveChanges();
+
+            // remove the user's cart items
+            foreach (var item in cartItems)
+            {
+                _context.CartItems.Remove(item);
+            }
+            _context.SaveChanges();
+
+            // clear all session vars
+            HttpContext.Session.Clear();
+
+            // redirect to  the order confirmation - /Orders/Details/5
+            return RedirectToAction("Details", "Orders", new { @id = order.OrderId });
         }
 
     }
